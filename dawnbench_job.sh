@@ -1,14 +1,13 @@
 #!/bin/bash
-#SBATCH --job-name=dawnbench_cifar10
-#SBATCH --partition=a100          # 使用A100分区
-#SBATCH --nodes=1                 # 使用1个节点
-#SBATCH --gres=gpu:1               # 每节点1个GPU
-#SBATCH --ntasks-per-node=1        # 每节点1个任务
-#SBATCH --cpus-per-task=4          # 每个任务4个CPU核心
-#SBATCH --time=00:10:00            # 最大运行时间10分钟（实际会更短）
-#SBATCH --output=%x_%j.out        # 输出日志
-#SBATCH --error=%x_%j.err         # 错误日志
-#SBATCH --mem=16G                  # 内存请求
+#SBATCH --job-name=dawnbench_test
+#SBATCH --partition=a100-test
+#SBATCH --nodes=1
+#SBATCH --gres=shard:2            # 请求2个GPU shard（A100的一半资源）
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=4         # 使用4个vCPU核心
+#SBATCH --time=00:20:00           # 20分钟时间限制
+#SBATCH --output=%x_%j.out
+#SBATCH --error=%x_%j.err
 
 # 加载必要模块
 module load cuda/11.8
