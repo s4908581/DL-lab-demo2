@@ -22,13 +22,13 @@ class SEBlock(nn.Module):
 
 class DepthwiseSeparableConv(nn.Module):
     """深度可分离卷积"""
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=False):
         super().__init__()
         self.depthwise = nn.Conv2d(
             in_channels, in_channels, kernel_size, 
-            stride, padding, groups=in_channels
+            stride, padding, groups=in_channels, bias=bias
         )
-        self.pointwise = nn.Conv2d(in_channels, out_channels, 1)
+        self.pointwise = nn.Conv2d(in_channels, out_channels, 1, bias=bias)
     
     def forward(self, x):
         x = self.depthwise(x)
