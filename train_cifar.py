@@ -60,12 +60,10 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=base_lr, momentum=0.9, weight_decay=1e-4)
     
-    # # OneCycle学习率调度器
-    # scheduler = optim.lr_scheduler.OneCycleLR(
-    #     optimizer, max_lr=base_lr, steps_per_epoch=len(train_loader), epochs=epochs
-    # )
-    # 使用余弦退火学习率
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs, eta_min=0.0001)
+    # OneCycle学习率调度器
+    scheduler = optim.lr_scheduler.OneCycleLR(
+        optimizer, max_lr=base_lr, steps_per_epoch=len(train_loader), epochs=epochs
+    )
     
     # 混合精度训练
     scaler = GradScaler()
@@ -126,6 +124,7 @@ def main():
 if __name__ == '__main__':
 
     main()
+
 
 
 
