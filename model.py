@@ -116,4 +116,5 @@ class FastCIFARNet(nn.Module):
 
 def create_model():
     """创建模型实例（类似ResNet-20的架构）"""
-    return FastCIFARNet(BasicBlock, [3, 3, 3])
+    return FastCIFARNet(BasicBlock, [5, 5, 5])
+
