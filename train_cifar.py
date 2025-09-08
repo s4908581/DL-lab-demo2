@@ -26,8 +26,13 @@ def main():
     transform_train = transforms.Compose([
         transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(15),  # 添加随机旋转
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),  # 颜色抖动
+        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),  # 随机平移
+        transforms.RandomGrayscale(p=0.1),  # 随机灰度化
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        transforms.RandomErasing(p=0.5, scale=(0.02, 0.1), ratio=(0.3, 3.3)),  # 随机擦除
     ])
     
     transform_test = transforms.Compose([
@@ -119,4 +124,5 @@ def main():
 if __name__ == '__main__':
 
     main()
+
 
