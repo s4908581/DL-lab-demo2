@@ -19,7 +19,7 @@ def main():
     
     # 超参数配置
     batch_size = 1024  # 大batch size充分利用A100
-    epochs = 40  # 总epoch数
+    epochs = 60  # 总epoch数
     base_lr = 0.4  # 基础学习率（OneCycle会调整）
     
     # 数据增强和预处理
@@ -124,6 +124,7 @@ def main():
 if __name__ == '__main__':
 
     main()
+
 
 
 
