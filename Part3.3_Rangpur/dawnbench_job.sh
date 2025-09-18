@@ -8,30 +8,30 @@
 #SBATCH --output=%x_%j.out
 #SBATCH --error=%x_%j.err
 
-# 1. 使用系统 Python 3.11
+# 1. Use Python 3.11
 echo "=== Using system Python 3.11 ==="
 PYTHON_CMD=python3
 $PYTHON_CMD --version || { echo "Python3 command not available"; exit 1; }
 
-# 2. 创建虚拟环境
+# 2. Create Virtual env
 echo "=== Creating virtual environment ==="
 $PYTHON_CMD -m venv cifar_venv || { echo "Failed to create virtual environment"; exit 1; }
 
-# 3. 激活虚拟环境
+# 3. activate venv
 echo "=== Activating virtual environment ==="
 source cifar_venv/bin/activate || { echo "Failed to activate virtual environment"; exit 1; }
 
-# 4. 升级 pip 并设置镜像源
+# 4. upgrade pip
 echo "=== Upgrading pip and setting mirror ==="
 pip install --upgrade pip
 pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
-# 5. 安装依赖
+# 5. install dependencies
 echo "=== Installing dependencies ==="
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 || { echo "Failed to install PyTorch"; exit 1; }
 pip install numpy matplotlib || { echo "Failed to install other dependencies"; exit 1; }
 
-# 6. 设置分布式训练环境
+# 6. set training env
 echo "=== Setting environment variables ==="
 export MASTER_ADDR=$(hostname)
 export MASTER_PORT=29500
@@ -39,11 +39,11 @@ export WORLD_SIZE=1
 export LOCAL_RANK=0
 export RANK=0
 
-# 7. 运行训练脚本
+# 7. run training script
 echo "=== Starting training ==="
 python -u train_cifar.py || { echo "Training script execution failed"; exit 1; }
 
-# 8. 清理
+# 8. cleaning
 echo "=== Cleaning up environment ==="
 deactivate
 echo "=== Job completed ==="
