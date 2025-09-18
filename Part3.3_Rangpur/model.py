@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class SEBlock(nn.Module):
-    """Squeeze-and-Excitation块"""
+    """Squeeze-and-Excitation block"""
     def __init__(self, channels, reduction=16):
         super(SEBlock, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
@@ -21,7 +21,7 @@ class SEBlock(nn.Module):
         return x * y.expand_as(x)
 
 class DepthwiseSeparableConv(nn.Module):
-    """深度可分离卷积"""
+    """Depthwise Separable Convolution"""
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, bias=False):
         super().__init__()
         self.depthwise = nn.Conv2d(
@@ -36,7 +36,7 @@ class DepthwiseSeparableConv(nn.Module):
         return x
 
 class BasicBlock(nn.Module):
-    """基础残差块"""
+    """Basic residual block"""
     expansion = 1
     
     def __init__(self, in_channels, out_channels, stride=1, use_se=False, use_ds=False):
@@ -73,7 +73,7 @@ class BasicBlock(nn.Module):
         return out
 
 class FastCIFARNet(nn.Module):
-    """高效CIFAR-10分类模型"""
+    """CIFAR-10 classifier model"""
     def __init__(self, block, num_blocks, num_classes=10, use_se=True, use_ds=True):
         super().__init__()
         self.in_channels = 64
@@ -86,7 +86,7 @@ class FastCIFARNet(nn.Module):
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Linear(256 * block.expansion, num_classes)
         
-        # 通道重排
+        # Channel shuffle
         self.channel_shuffle = nn.ChannelShuffle(groups=4)
     
     def _make_layer(self, block, out_channels, num_blocks, stride, use_se, use_ds):
@@ -100,7 +100,7 @@ class FastCIFARNet(nn.Module):
         return nn.Sequential(*layers)
     
     def forward(self, x):
-        # 渐进式图像尺寸训练 - 初始阶段使用较小尺寸
+        # Model structure
         if self.training and x.size(2) > 32:
             x = F.interpolate(x, size=(32, 32), mode='bilinear', align_corners=False)
         
@@ -115,6 +115,7 @@ class FastCIFARNet(nn.Module):
         return out
 
 def create_model():
-    """创建模型实例（类似ResNet-20的架构）"""
+    """Create model instance"""
     return FastCIFARNet(BasicBlock, [5, 5, 5])
+
 
