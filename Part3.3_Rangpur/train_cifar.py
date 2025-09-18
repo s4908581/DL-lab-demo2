@@ -7,32 +7,32 @@ from torch.cuda.amp import GradScaler, autocast
 import torchvision
 import torchvision.transforms as transforms
 import time
-from model import create_model  # 假设模型定义在model.py中
+from model import create_model
 import os
 
 def main():
-    # 分布式训练初始化
+    # Initialization 
     dist.init_process_group(backend='nccl')
     local_rank = int(os.environ['LOCAL_RANK'])
     torch.cuda.set_device(local_rank)
     device = torch.device('cuda', local_rank)
     
-    # 超参数配置
-    batch_size = 1024  # 大batch size充分利用A100
-    epochs = 60  # 总epoch数
-    base_lr = 0.4  # 基础学习率（OneCycle会调整）
+    # Parameter
+    batch_size = 1024 
+    epochs = 60
+    base_lr = 0.4
     
-    # 数据增强和预处理
+    # Data Preprocessing and augmentation
     transform_train = transforms.Compose([
         transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(15),  # 添加随机旋转
-        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),  # 颜色抖动
-        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),  # 随机平移
-        transforms.RandomGrayscale(p=0.1),  # 随机灰度化
+        transforms.RandomRotation(15), 
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2), 
+        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+        transforms.RandomGrayscale(p=0.1), 
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-        transforms.RandomErasing(p=0.5, scale=(0.02, 0.1), ratio=(0.3, 3.3)),  # 随机擦除
+        transforms.RandomErasing(p=0.5, scale=(0.02, 0.1), ratio=(0.3, 3.3)),
     ])
     
     transform_test = transforms.Compose([
@@ -40,7 +40,7 @@ def main():
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
     ])
     
-    # 分布式数据加载
+    # Data loader
     train_set = torchvision.datasets.CIFAR10(
         root='./data', train=True, download=True, transform=transform_train)
     train_sampler = torch.utils.data.distributed.DistributedSampler(train_set)
@@ -51,24 +51,24 @@ def main():
         root='./data', train=False, download=True, transform=transform_test)
     test_loader = torch.utils.data.DataLoader(
         test_set, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True)
-    
-    # 创建模型并转为DDP
+    #====================================
+    # Create model
     model = create_model().to(device)
     model = DDP(model, device_ids=[local_rank])
     
-    # 损失函数和优化器
+    # loss function and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=base_lr, momentum=0.9, weight_decay=1e-4)
     
-    # OneCycle学习率调度器
+    # OneCycle LR schedular
     scheduler = optim.lr_scheduler.OneCycleLR(
         optimizer, max_lr=base_lr, steps_per_epoch=len(train_loader), epochs=epochs
     )
     
-    # 混合精度训练
+    # Mixed-precision training
     scaler = GradScaler()
-    
-    # 训练循环
+    #====================================    
+    # Training
     total_start = time.time()
     for epoch in range(epochs):
         model.train()
@@ -80,7 +80,7 @@ def main():
             
             optimizer.zero_grad()
             
-            # 混合精度训练
+            
             with autocast():
                 outputs = model(inputs)
                 loss = criterion(outputs, labels)
@@ -90,11 +90,11 @@ def main():
             scaler.update()
             scheduler.step()
             
-            # 每100个batch打印一次
+            
             if i % 100 == 0 and local_rank == 0:
                 print(f'Epoch [{epoch+1}/{epochs}], Step [{i}/{len(train_loader)}], Loss: {loss.item():.4f}')
-        
-        # 评估模型
+        #=============================
+        # Evaluation
         if local_rank == 0:
             epoch_time = time.time() - epoch_start
             print(f'Epoch [{epoch+1}/{epochs}] completed in {epoch_time:.2f}s')
@@ -118,12 +118,13 @@ def main():
         print(f'Total training time: {total_time:.2f}s')
         print(f'Final accuracy: {accuracy:.2f}%')
         
-        # 保存模型
+        
         torch.save(model.module.state_dict(), 'fast_cifar_model.pth')
 
 if __name__ == '__main__':
 
     main()
+
 
 
 
